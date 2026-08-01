@@ -11,6 +11,7 @@ const nav = [
   { href: "/leads", label: "Leads" },
   { href: "/objekte", label: "Objekte" },
   { href: "/kunden", label: "Kunden" },
+  { href: "/demo-mails", label: "Demo-Mails" },
 ];
 
 export default function RootLayout({

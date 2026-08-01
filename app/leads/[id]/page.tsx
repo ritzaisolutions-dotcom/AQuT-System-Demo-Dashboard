@@ -7,6 +7,7 @@ import type {
   RequirementsCatalog,
 } from "@/lib/types";
 import { HitlForm } from "./hitl-form";
+import { DemoMailButtons } from "@/app/demo-mails/demo-mail-buttons";
 
 export const dynamic = "force-dynamic";
 
@@ -165,6 +166,8 @@ export default async function LeadDetailPage({
       {typedLead.qualification_status === "hitl_review" ? (
         <HitlForm leadId={typedLead.id} />
       ) : null}
+
+      <DemoMailButtons leadId={typedLead.id} />
 
       <section className="space-y-2">
         <h2 className="text-sm font-semibold text-slate-900">Lead-Felder</h2>

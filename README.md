@@ -1,12 +1,12 @@
 # Haller Dev-Dashboard
 
-Interne Rohversion: zeigt den aktuellen Supabase-Zustand der AQuT-Pipeline (Leads, Objekte, Mandant). Kein Kundenprodukt, kein Design-Anspruch, kein Login.
+Interne Rohversion: zeigt den aktuellen Supabase-Zustand der AQuT-Pipeline (Leads, Objekte, Mandant) und triggert Demo-Mails über n8n. Kein Kundenprodukt, kein Design-Anspruch, kein Login.
 
 ## Setup
 
 ```bash
 cp .env.example .env.local
-# SUPABASE_SERVICE_ROLE_KEY aus Supabase → Project Settings → API eintragen
+# SUPABASE_SERVICE_ROLE_KEY + N8N_WEBHOOK_BASE_URL eintragen
 npm install
 npm run dev
 ```
@@ -16,20 +16,24 @@ Env-Vars (auch auf Vercel setzen):
 | Variable | Hinweis |
 |---|---|
 | `SUPABASE_URL` | Project URL |
-| `SUPABASE_SERVICE_ROLE_KEY` | **Geheim.** Niemals `NEXT_PUBLIC_` — sonst landet der Key im Browser-Bundle. |
+| `SUPABASE_SERVICE_ROLE_KEY` | **Geheim.** Niemals `NEXT_PUBLIC_` |
+| `N8N_WEBHOOK_BASE_URL` | z. B. `https://n8n.ritz-ai.solutions` (ohne Slash am Ende). Server-only. |
 
-Der Service-Role-Key umgeht RLS. Das ist für diese Rohversion beabsichtigt (ein Mandant, leeres `dashboard_users`). Die spätere Vollversion nutzt Anon-Key + Auth + RLS.
+Der Service-Role-Key umgeht RLS. Das ist für diese Rohversion beabsichtigt. Empfänger-Override für Mails (`DEMO_MAIL_OVERRIDE=marco@ritz-ai.solutions`) liegt in **n8n**, nicht hier.
 
 ## Seiten
 
-- `/leads` — Anfragen-Liste; Detail mit Requirements + HITL Freigeben/Ablehnen
-- `/objekte` — Objekte + zugeordnete Requirements (read-only)
+- `/leads` — Anfragen-Liste; Detail mit Requirements, HITL und Demo-Mail-Buttons
+- `/objekte` — Objekte + Requirements (read-only)
 - `/kunden` — Mandant `haller`
+- `/demo-mails` — vier WF5-Vorlagen ohne Lead-Kontext
 
-HITL-Updates setzen nur `qualification_status` (und bei Ablehnung `abgelehnt_grund` / `abgelehnt_am`). Der bestehende Trigger `leads_hitl_resolved_webhook` benachrichtigt n8n.
+### Demo-Mails
 
-`abgelehnt_von` bleibt `null`: die Spalte ist `uuid` FK auf `auth.users`, und dieses Dashboard hat keine Auth.
+Buttons rufen `POST {N8N_WEBHOOK_BASE_URL}/webhook/demo-mail` auf. WF5-Import: AQuT `n8n-workflows/clients/haller/5_mail-versand.json`.
+
+HITL Freigeben/Ablehnen aktualisiert nur Supabase; der DB-Trigger postet an `/webhook/hitl-resolved` (derselbe WF5-Workflow).
 
 ## Deploy / Sicherheit
 
-Neues Vercel-Projekt aus diesem Ordner. Nach dem Deploy **Deployment Protection (Passwort)** in den Vercel-Projekteinstellungen aktivieren — die URL enthält sonst ungeschützt echte Interessenten-Daten.
+Neues Vercel-Projekt aus diesem Ordner. **Deployment Protection (Passwort)** aktivieren.
